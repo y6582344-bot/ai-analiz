@@ -3,13 +3,8 @@
     "name": "Yapay zeka",
     "slug": "yapay-zeka",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "userInterfaceStyle": "light",
     "android": {
-      "package": "com.y6582344.yapayzeka",
-      "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
-      }
+      "package": "com.y6582344.yapayzeka"
     }
   }
 }
