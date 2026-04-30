@@ -3,6 +3,11 @@
     "name": "Yapay zeka",
     "slug": "yapay-zeka",
     "version": "1.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "3e5a39d2-41a2-43a0-8982-a1feb0ff7ab6"
+      }
+    },
     "android": {
       "package": "com.y6582344.yapayzeka"
     }
