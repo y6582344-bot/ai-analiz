@@ -1,18 +1,14 @@
 {
   "expo": {
-    "name": "AI Tactician",
-    "slug": "ai-analiz",
+    "name": "Yapay zeka",
+    "slug": "yapay-zeka",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "android": {
-      "package": "com.y6582344.aitactician",
-      "permissions": [
-        "SYSTEM_ALERT_WINDOW",
-        "FOREGROUND_SERVICE"
-      ],
+      "package": "com.y6582344.yapayzeka",
       "adaptiveIcon": {
-        "backgroundColor": "#020617"
+        "backgroundColor": "#ffffff"
       }
     }
   }
