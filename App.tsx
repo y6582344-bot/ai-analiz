@@ -19,11 +19,11 @@ import * as FileSystem from 'expo-file-system';
 
 const { width, height } = Dimensions.get('window');
 
-// JARVIS ANA SİSTEM
+// JARVIS ANA YAZILIMI
 export default function App() {
   const [isFloatMode, setIsFloatMode] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Sistemler aktif efendim. Ekran görüntüsü alın ve göz (👁️) simgesine dokunun.", sender: 'ai' }
+    { id: 1, text: "Sistemler aktif efendim. Ekran görüntüsü alın ve balon üzerindeki göz (👁️) butonuna dokunun.", sender: 'ai' }
   ]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -48,6 +48,7 @@ export default function App() {
     })
   ).current;
 
+  // API ANAHTARI
   const API_KEY = "AIzaSyBXCxSX0vx7nKTQVxerJ2s0778X-S_ShQ"; 
 
   const autoAnalyze = async () => {
@@ -72,7 +73,7 @@ export default function App() {
           body: JSON.stringify({
             contents: [{
               parts: [
-                { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Eğer bir oyunsa taktik ver, mesajlaşmaysa ne yazmam gerektiğini söyle. Üslubun samimi, zeki ve delikanlı olsun." },
+                { text: "Sen Jarvis'sin. Bu son alınan ekran görüntüsü. Brawl Stars gibi bir oyunsa taktik ver. Mesajsa ne yazmam gerektiğini söyle. Zeki ve delikanlı ol." },
                 { inlineData: { mimeType: "image/png", data: base64Data } }
               ]
             }]
@@ -80,11 +81,11 @@ export default function App() {
         });
 
         const data = await response.json();
-        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz yapılamadı efendim.";
+        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz başarısız efendim.";
         setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
       }
     } catch (error) {
-      setMessages(prev => [...prev, { id: Date.now(), text: "Göz sisteminde hata oluştu.", sender: 'ai' }]);
+      setMessages(prev => [...prev, { id: Date.now(), text: "Hata: " + error.message, sender: 'ai' }]);
     } finally {
       setLoading(false);
     }
@@ -104,11 +105,11 @@ export default function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: "Sen Jarvis'sin. Zeki ol. Soru: " + currentInput }] }]
+          contents: [{ parts: [{ text: "Sen Jarvis'sin. 11. sınıf bir gencin asistanısın. Soru: " + currentInput }] }]
         })
       });
       const data = await response.json();
-      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hata oluştu.";
+      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hata efendim.";
       setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
     } catch (e) {
       setMessages(prev => [...prev, { id: Date.now(), text: "Bağlantı koptu.", sender: 'ai' }]);
@@ -127,8 +128,8 @@ export default function App() {
           <View style={styles.miniChat}>
             <ScrollView style={styles.miniScroll}><Text style={styles.miniAiText}>{messages[messages.length - 1].text}</Text></ScrollView>
             <View style={styles.miniInputRow}>
-              <TouchableOpacity onPress={autoAnalyze} style={styles.eyeBtn}><Text style={{fontSize: 18}}>👁️</Text></TouchableOpacity>
-              <TextInput style={styles.miniInput} placeholder="..." placeholderTextColor="#444" value={inputText} onChangeText={setInputText}/>
+              <TouchableOpacity onPress={autoAnalyze} style={styles.eyeBtn}><Text style={{fontSize: 20}}>👁️</Text></TouchableOpacity>
+              <TextInput style={styles.miniInput} placeholder="..." value={inputText} onChangeText={setInputText}/>
               <TouchableOpacity onPress={sendMessage} style={styles.miniSend}><Text style={{color:'#000'}}>></Text></TouchableOpacity>
             </View>
           </View>
@@ -157,7 +158,7 @@ export default function App() {
       <View style={styles.footer}>
         <TouchableOpacity onPress={autoAnalyze} style={styles.cameraBtn}><Text style={{fontSize: 28}}>👁️</Text></TouchableOpacity>
         <TextInput style={styles.mainInput} placeholder="Emredin efendim..." value={inputText} onChangeText={setInputText} multiline/>
-        <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}><Text style={styles.sendBtnText}>GÖNDER</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}><Text style={styles.sendBtnText}>SOR</Text></TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -166,7 +167,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0b0f19' },
   header: { paddingTop: 60, paddingBottom: 20, backgroundColor: '#161b22', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, alignItems: 'center' },
-  headerTitle: { color: '#00d2ff', fontSize: 24, fontWeight: 'bold', letterSpacing: 4 },
+  headerTitle: { color: '#00d2ff', fontSize: 24, fontWeight: 'bold' },
   floatBtn: { backgroundColor: '#00d2ff', paddingVertical: 5, paddingHorizontal: 15, borderRadius: 20 },
   floatBtnText: { color: '#0b0f19', fontWeight: 'bold' },
   chatArea: { padding: 15 },
