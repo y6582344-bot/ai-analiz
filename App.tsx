@@ -22,7 +22,7 @@ const { width, height } = Dimensions.get('window');
 export default function App() {
   const [isFloatMode, setIsFloatMode] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Sistemler aktif efendim. Göz simgesine basınca son ekran görüntüsünü analiz ederim.", sender: 'ai' }
+    { id: 1, text: "Sistemler aktif efendim. Göz simgesine dokunun, son ekran görüntüsünü analiz edeyim.", sender: 'ai' }
   ]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -71,7 +71,7 @@ export default function App() {
           body: JSON.stringify({
             contents: [{
               parts: [
-                { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Oyunsa taktik ver, mesajsa ne yazacağımı söyle. Zeki ve delikanlı ol." },
+                { text: "Sen Jarvis'sin. Bu son ekran görüntüsü. Oyunsa taktik ver, mesajsa cevap yaz. Zeki ve samimi ol." },
                 { inlineData: { mimeType: "image/png", data: base64Data } }
               ]
             }]
@@ -79,7 +79,7 @@ export default function App() {
         });
 
         const data = await response.json();
-        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz başarısız.";
+        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz başarısız oldu efendim.";
         setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
       }
     } catch (error) {
@@ -94,16 +94,16 @@ export default function App() {
     const userMsg = { id: Date.now(), text: inputText, sender: 'user' };
     setMessages(prev => [...prev, userMsg]);
     const currentInput = inputText;
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
     setInputText('');
     setLoading(true);
 
     try {
-      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: "Sen Jarvis'sin. Zeki ol. Soru: " + currentInput }] }]
+          contents: [{ parts: [{ text: "Sen Jarvis'sin. Zeki ve samimi ol. Soru: " + currentInput }] }]
         })
       });
       const data = await response.json();
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0b0f19' },
   header: { paddingTop: 60, paddingBottom: 20, backgroundColor: '#161b22', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, alignItems: 'center' },
   headerTitle: { color: '#00d2ff', fontSize: 24, fontWeight: 'bold' },
-  floatBtn: { backgroundColor: '#00d2ff', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 15 },
+  floatBtn: { backgroundColor: '#00d2ff', paddingVertical: 5, paddingHorizontal: 15, borderRadius: 20 },
   floatBtnText: { color: '#0b0f19', fontWeight: 'bold' },
   chatArea: { padding: 15 },
   msgBox: { padding: 15, borderRadius: 20, marginBottom: 12, maxWidth: '85%' },
