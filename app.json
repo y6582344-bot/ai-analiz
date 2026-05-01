@@ -1,18 +1,24 @@
 {
   "expo": {
-    "name": "Yapay zeka",
+    "name": "Jarvis",
     "slug": "ai",
     "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0b0f19"
+    },
     "extra": {
       "eas": {
         "projectId": "3e5a39d2-41a2-43a0-8982-a1feb0ff7ab6"
       }
     },
     "android": {
-      "package": "com.y6582344.yapayzeka"
-    },
-    "splash": {
-      "backgroundColor": "#ffffff"
+      "package": "com.y6582344.yapayzeka",
+      "adaptiveIcon": {
+        "backgroundColor": "#0b0f19"
+      }
     }
   }
 }
