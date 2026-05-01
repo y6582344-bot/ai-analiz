@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Yapay zeka",
-    "slug": "yapay-zeka",
+    "slug": "ai",
     "version": "1.0.0",
     "extra": {
       "eas": {
