@@ -48,7 +48,7 @@ export default function App() {
     })
   ).current;
 
-  // SENİN API ANAHTARIN
+  // SENİN GÜNCEL API ANAHTARIN
   const API_KEY = "AIzaSyBXCxSX0vx7nKTQVxerJ2s0778X-S_ShQ"; 
 
   const autoAnalyze = async () => {
@@ -63,23 +63,23 @@ export default function App() {
         const lastPhoto = assets[0];
         const base64Data = await FileSystem.readAsStringAsync(lastPhoto.uri, { encoding: FileSystem.EncodingType.Base64 });
         
-        setMessages(prev => [...prev, { id: Date.now(), text: "Görüntü analiz ediliyor...", sender: 'user' }]);
+        setMessages(prev => [...prev, { id: Date.now(), text: "Görüntü inceleniyor...", sender: 'user' }]);
 
-        const response = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Oyunsa taktik ver, mesajsa cevap yaz. Samimi ol." },
-                  { inlineData: { mimeType: "image/png", data: base64Data } }
-                ]
-              }]
-            })
-          }
-        );
+        // Link birleştirmeyi garantili hale getirdim
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: "Sen Jarvis'sin. Bu son ekran görüntüsü. Oyunsa taktik ver, mesajsa cevap yaz. Zeki ol." },
+                { inlineData: { mimeType: "image/png", data: base64Data } }
+              ]
+            }]
+          })
+        });
 
         const data = await response.json();
         const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz başarısız.";
@@ -101,16 +101,14 @@ export default function App() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "Sen Jarvis'sin. Zeki ol. Soru: " + currentInput }] }]
-          })
-        }
-      );
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: "Sen Jarvis'sin. Zeki ol. Soru: " + currentInput }] }]
+        })
+      });
       const data = await response.json();
       const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hata oluştu.";
       setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
