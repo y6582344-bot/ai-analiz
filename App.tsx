@@ -19,7 +19,6 @@ import * as FileSystem from 'expo-file-system';
 
 const { width, height } = Dimensions.get('window');
 
-// JARVIS ANA YAZILIM - KARARLI SÜRÜM
 export default function App() {
   const [isFloatMode, setIsFloatMode] = useState(false);
   const [messages, setMessages] = useState([
@@ -28,15 +27,16 @@ export default function App() {
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   
+  // Pan responder için kararlı başlangıç
   const pan = useRef(new Animated.ValueXY({ x: width - 80, y: height - 250 })).current;
 
   useEffect(() => {
-    async function getPermissions() {
+    async function getPerms() {
       try {
         await MediaLibrary.requestPermissionsAsync();
       } catch (e) {}
     }
-    getPermissions();
+    getPerms();
   }, []);
 
   const panResponder = useRef(
@@ -44,7 +44,10 @@ export default function App() {
       onStartShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
         // @ts-ignore
-        pan.setOffset({ x: pan.x._value, y: pan.y._value });
+        const curX = pan.x._value || 0;
+        // @ts-ignore
+        const curY = pan.y._value || 0;
+        pan.setOffset({ x: curX, y: curY });
         pan.setValue({ x: 0, y: 0 });
       },
       onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
@@ -52,7 +55,6 @@ export default function App() {
     })
   ).current;
 
-  // API ANAHTARI
   const API_KEY = "AIzaSyBXCxSX0vx7nKTQVxerJ2s0778X-S_ShQ"; 
 
   const autoAnalyze = async () => {
@@ -68,7 +70,7 @@ export default function App() {
         const lastPhoto = result.assets[0];
         const base64Data = await FileSystem.readAsStringAsync(lastPhoto.uri, { encoding: FileSystem.EncodingType.Base64 });
         
-        setMessages(prev => [...prev, { id: Date.now(), text: "İnceleniyor...", sender: 'user' }]);
+        setMessages(prev => [...prev, { id: Date.now(), text: "Görüntü analiz ediliyor...", sender: 'user' }]);
 
         const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
 
@@ -78,7 +80,7 @@ export default function App() {
           body: JSON.stringify({
             contents: [{
               parts: [
-                { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Oyunsa taktik ver, mesajsa cevap yaz. Zeki ol." },
+                { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Oyunsa taktik ver, mesajsa cevap yaz. Zeki ve samimi ol." },
                 { inlineData: { mimeType: "image/png", data: base64Data } }
               ]
             }]
@@ -86,7 +88,7 @@ export default function App() {
         });
 
         const data = await response.json();
-        const aiText = data.candidates && data.candidates[0] ? data.candidates[0].content.parts[0].text : "Analiz hatası.";
+        const aiText = data.candidates && data.candidates[0] ? data.candidates[0].content.parts[0].text : "Analiz başarısız.";
         setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
       }
     } catch (error) {
@@ -116,13 +118,14 @@ export default function App() {
       const aiText = data.candidates && data.candidates[0] ? data.candidates[0].content.parts[0].text : "Hata efendim.";
       setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
     } catch (e) {
-      setMessages(prev => [...prev, { id: Date.now(), text: "Bağlantı hatası.", sender: 'ai' }]);
+      setMessages(prev => [...prev, { id: Date.now(), text: "Bağlantı koptu.", sender: 'ai' }]);
     } finally {
       setLoading(false);
     }
   };
 
   if (isFloatMode) {
+    const lastMsg = messages.length > 0 ? messages[messages.length - 1].text : "Sistem Hazır";
     return (
       <View style={styles.container}>
         <Animated.View style={[pan.getLayout(), styles.floatingJarvis]} {...panResponder.panHandlers}>
@@ -130,11 +133,11 @@ export default function App() {
             <Text style={styles.bubbleText}>J</Text>
           </TouchableOpacity>
           <View style={styles.miniChat}>
-            <ScrollView style={{maxHeight: 80}}><Text style={styles.miniAiText}>{messages[messages.length - 1]?.text}</Text></ScrollView>
+            <ScrollView style={{maxHeight: 60}}><Text style={styles.miniAiText}>{lastMsg}</Text></ScrollView>
             <View style={styles.miniInputRow}>
-              <TouchableOpacity onPress={autoAnalyze} style={styles.eyeBtn}><Text style={{fontSize: 20}}>👁️</Text></TouchableOpacity>
+              <TouchableOpacity onPress={autoAnalyze} style={styles.eyeBtn}><Text>👁️</Text></TouchableOpacity>
               <TextInput style={styles.miniInput} placeholder="..." value={inputText} onChangeText={setInputText}/>
-              <TouchableOpacity onPress={sendMessage} style={styles.miniSend}><Text style={{color:'#000'}}>></Text></TouchableOpacity>
+              <TouchableOpacity onPress={sendMessage} style={styles.miniSend}><Text>></Text></TouchableOpacity>
             </View>
           </View>
         </Animated.View>
