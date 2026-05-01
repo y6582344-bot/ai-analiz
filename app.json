@@ -5,9 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "splash": {
-      "backgroundColor": "#0b0f19"
-    },
+    "backgroundColor": "#0b0f19",
     "extra": {
       "eas": {
         "projectId": "3e5a39d2-41a2-43a0-8982-a1feb0ff7ab6"
@@ -15,10 +13,7 @@
     },
     "android": {
       "package": "com.y6582344.yapayzeka",
-      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
-      "adaptiveIcon": {
-        "backgroundColor": "#0b0f19"
-      }
+      "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"]
     },
     "plugins": [
       [
