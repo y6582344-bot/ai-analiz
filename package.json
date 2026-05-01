@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "main": "node_modules/expo/AppEntry.js",
   "dependencies": {
-    "expo": "~50.0.0",
+    "expo": "~50.0.14",
     "expo-status-bar": "~1.11.1",
     "react": "18.2.0",
-    "react-native": "0.73.2"
+    "react-native": "0.73.6",
+    "expo-constants": "~15.4.6"
   },
   "private": true
 }
