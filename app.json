@@ -16,16 +16,13 @@
       "permissions": ["READ_EXTERNAL_STORAGE", "WRITE_EXTERNAL_STORAGE"],
       "adaptiveIcon": {
         "backgroundColor": "#0b0f19"
-      },
-      "splash": {
-        "backgroundColor": "#0b0f19"
       }
     },
     "plugins": [
       [
         "expo-media-library",
         {
-          "photosPermission": "Jarvis'in ekran görüntülerinizi analiz etmesi için galerinize erişmesi gerekiyor."
+          "photosPermission": "Jarvis'in ekran görüntülerinizi analiz etmesi için izne ihtiyacı var."
         }
       ]
     ]
