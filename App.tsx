@@ -22,21 +22,21 @@ const { width, height } = Dimensions.get('window');
 export default function App() {
   const [isFloatMode, setIsFloatMode] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Sistemler aktif efendim. Ekran görüntüsü alın ve göz (👁️) butonuna dokunun.", sender: 'ai' }
+    { id: 1, text: "Sistemler aktif efendim. Ekran görüntüsü alın ve göz simgesine dokunun.", sender: 'ai' }
   ]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   
-  // Kararlı Pan değerleri
   const pan = useRef(new Animated.ValueXY({ x: width - 80, y: height - 250 })).current;
 
   useEffect(() => {
-    async function init() {
+    (async () => {
       try {
         await MediaLibrary.requestPermissionsAsync();
-      } catch (e) {}
-    }
-    init();
+      } catch (e) {
+        console.log("İzin hatası");
+      }
+    })();
   }, []);
 
   const panResponder = useRef(
@@ -52,7 +52,6 @@ export default function App() {
     })
   ).current;
 
-  // API ANAHTARIN
   const API_KEY = "AIzaSyBXCxSX0vx7nKTQVxerJ2s0778X-S_ShQ"; 
 
   const autoAnalyze = async () => {
@@ -64,14 +63,13 @@ export default function App() {
         sortBy: [[MediaLibrary.SortBy.creationTime, false]],
       });
 
-      if (result && result.assets && result.assets.length > 0) {
+      if (result.assets && result.assets.length > 0) {
         const lastPhoto = result.assets[0];
         const base64Data = await FileSystem.readAsStringAsync(lastPhoto.uri, { encoding: FileSystem.EncodingType.Base64 });
         
-        setMessages(prev => [...prev, { id: Date.now(), text: "Görüntü analiz ediliyor...", sender: 'user' }]);
+        setMessages(prev => [...prev, { id: Date.now(), text: "İnceleniyor...", sender: 'user' }]);
 
-        // Hermes motoru için en güvenli fetch yapısı
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + API_KEY;
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
 
         const response = await fetch(url, {
           method: 'POST',
@@ -79,7 +77,7 @@ export default function App() {
           body: JSON.stringify({
             contents: [{
               parts: [
-                { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Oyunsa taktik ver, mesajsa cevap yaz. Zeki ve delikanlı ol." },
+                { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Oyunsa taktik ver, mesajsa cevap yaz. Zeki ol." },
                 { inlineData: { mimeType: "image/png", data: base64Data } }
               ]
             }]
@@ -87,7 +85,7 @@ export default function App() {
         });
 
         const data = await response.json();
-        const aiText = data.candidates && data.candidates[0] ? data.candidates[0].content.parts[0].text : "Analiz başarısız.";
+        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz hatası.";
         setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
       }
     } catch (error) {
@@ -105,7 +103,7 @@ export default function App() {
     setLoading(true);
 
     try {
-      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + API_KEY;
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -114,7 +112,7 @@ export default function App() {
         })
       });
       const data = await response.json();
-      const aiText = data.candidates && data.candidates[0] ? data.candidates[0].content.parts[0].text : "Hata efendim.";
+      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hata oluştu.";
       setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
     } catch (e) {
       setMessages(prev => [...prev, { id: Date.now(), text: "Bağlantı koptu.", sender: 'ai' }]);
@@ -163,7 +161,7 @@ export default function App() {
       <View style={styles.footer}>
         <TouchableOpacity onPress={autoAnalyze} style={styles.cameraBtn}><Text style={{fontSize: 28}}>👁️</Text></TouchableOpacity>
         <TextInput style={styles.mainInput} placeholder="Emredin efendim..." value={inputText} onChangeText={setInputText} multiline/>
-        <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}><Text style={styles.sendBtnText}>SOR</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}><Text style={styles.sendBtnText}>GÖNDER</Text></TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
