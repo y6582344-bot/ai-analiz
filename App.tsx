@@ -22,28 +22,29 @@ const { width, height } = Dimensions.get('window');
 export default function App() {
   const [isFloatMode, setIsFloatMode] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Sistemler aktif efendim. Göz simgesine dokunun, son ekran görüntüsünü analiz edeyim.", sender: 'ai' }
+    { id: 1, text: "Sistemler aktif efendim. Ekran görüntüsü alın ve göz (👁️) butonuna dokunun.", sender: 'ai' }
   ]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   
+  // Kararlı Pan değerleri
   const pan = useRef(new Animated.ValueXY({ x: width - 80, y: height - 250 })).current;
 
   useEffect(() => {
-    async function getPerms() {
-      await MediaLibrary.requestPermissionsAsync();
+    async function init() {
+      try {
+        await MediaLibrary.requestPermissionsAsync();
+      } catch (e) {}
     }
-    getPerms();
+    init();
   }, []);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
-        pan.setOffset({
-          x: (pan.x as any)._value,
-          y: (pan.y as any)._value
-        });
+        // @ts-ignore
+        pan.setOffset({ x: pan.x._value, y: pan.y._value });
         pan.setValue({ x: 0, y: 0 });
       },
       onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
@@ -51,6 +52,7 @@ export default function App() {
     })
   ).current;
 
+  // API ANAHTARIN
   const API_KEY = "AIzaSyBXCxSX0vx7nKTQVxerJ2s0778X-S_ShQ"; 
 
   const autoAnalyze = async () => {
@@ -62,21 +64,22 @@ export default function App() {
         sortBy: [[MediaLibrary.SortBy.creationTime, false]],
       });
 
-      if (result.assets && result.assets.length > 0) {
+      if (result && result.assets && result.assets.length > 0) {
         const lastPhoto = result.assets[0];
         const base64Data = await FileSystem.readAsStringAsync(lastPhoto.uri, { encoding: FileSystem.EncodingType.Base64 });
         
         setMessages(prev => [...prev, { id: Date.now(), text: "Görüntü analiz ediliyor...", sender: 'user' }]);
 
-        const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
+        // Hermes motoru için en güvenli fetch yapısı
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + API_KEY;
 
-        const response = await fetch(apiUrl, {
+        const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{
               parts: [
-                { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Oyunsa taktik ver, mesajsa ne yazacağımı söyle. Zeki ve delikanlı ol." },
+                { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Oyunsa taktik ver, mesajsa cevap yaz. Zeki ve delikanlı ol." },
                 { inlineData: { mimeType: "image/png", data: base64Data } }
               ]
             }]
@@ -88,7 +91,7 @@ export default function App() {
         setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
       }
     } catch (error) {
-      setMessages(prev => [...prev, { id: Date.now(), text: "Hata oluştu.", sender: 'ai' }]);
+      setMessages(prev => [...prev, { id: Date.now(), text: "Göz hatası.", sender: 'ai' }]);
     } finally {
       setLoading(false);
     }
@@ -102,8 +105,8 @@ export default function App() {
     setLoading(true);
 
     try {
-      const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
-      const response = await fetch(apiUrl, {
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=" + API_KEY;
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -159,7 +162,7 @@ export default function App() {
       </ScrollView>
       <View style={styles.footer}>
         <TouchableOpacity onPress={autoAnalyze} style={styles.cameraBtn}><Text style={{fontSize: 28}}>👁️</Text></TouchableOpacity>
-        <TextInput style={styles.mainInput} placeholder="Emredin..." value={inputText} onChangeText={setInputText} multiline/>
+        <TextInput style={styles.mainInput} placeholder="Emredin efendim..." value={inputText} onChangeText={setInputText} multiline/>
         <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}><Text style={styles.sendBtnText}>SOR</Text></TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -191,7 +194,8 @@ const styles = StyleSheet.create({
   miniInputRow: { flexDirection: 'row', marginTop: 10, alignItems: 'center' },
   eyeBtn: { backgroundColor: '#00d2ff', padding: 5, borderRadius: 50, marginRight: 5 },
   miniInput: { flex: 1, color: '#fff', fontSize: 12 },
-  miniSend: { backgroundColor: '#00d2ff', width: 25, height: 25, borderRadius: 12.5, justifyContent: 'center', alignItems: 'center', marginLeft: 5 }
+  miniSend: { backgroundColor: '#00d2ff', width: 25, height: 25, borderRadius: 12.5, justifyContent: 'center', alignItems: 'center', marginLeft: 5 },
+  miniScroll: { maxHeight: 80 }
 });
 
 ```
