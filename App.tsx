@@ -19,10 +19,11 @@ import * as FileSystem from 'expo-file-system';
 
 const { width, height } = Dimensions.get('window');
 
+// JARVIS ANA YAZILIM - KARARLI SÜRÜM
 export default function App() {
   const [isFloatMode, setIsFloatMode] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Sistemler aktif efendim. Ekran görüntüsü alın ve göz simgesine dokunun.", sender: 'ai' }
+    { id: 1, text: "Sistemler aktif efendim. Göz simgesine dokunun, son ekran görüntüsünü analiz edeyim.", sender: 'ai' }
   ]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,13 +31,12 @@ export default function App() {
   const pan = useRef(new Animated.ValueXY({ x: width - 80, y: height - 250 })).current;
 
   useEffect(() => {
-    (async () => {
+    async function getPermissions() {
       try {
         await MediaLibrary.requestPermissionsAsync();
-      } catch (e) {
-        console.log("İzin hatası");
-      }
-    })();
+      } catch (e) {}
+    }
+    getPermissions();
   }, []);
 
   const panResponder = useRef(
@@ -52,6 +52,7 @@ export default function App() {
     })
   ).current;
 
+  // API ANAHTARI
   const API_KEY = "AIzaSyBXCxSX0vx7nKTQVxerJ2s0778X-S_ShQ"; 
 
   const autoAnalyze = async () => {
@@ -63,15 +64,15 @@ export default function App() {
         sortBy: [[MediaLibrary.SortBy.creationTime, false]],
       });
 
-      if (result.assets && result.assets.length > 0) {
+      if (result && result.assets && result.assets.length > 0) {
         const lastPhoto = result.assets[0];
         const base64Data = await FileSystem.readAsStringAsync(lastPhoto.uri, { encoding: FileSystem.EncodingType.Base64 });
         
         setMessages(prev => [...prev, { id: Date.now(), text: "İnceleniyor...", sender: 'user' }]);
 
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
+        const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
 
-        const response = await fetch(url, {
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -85,11 +86,11 @@ export default function App() {
         });
 
         const data = await response.json();
-        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz hatası.";
+        const aiText = data.candidates && data.candidates[0] ? data.candidates[0].content.parts[0].text : "Analiz hatası.";
         setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
       }
     } catch (error) {
-      setMessages(prev => [...prev, { id: Date.now(), text: "Göz hatası.", sender: 'ai' }]);
+      setMessages(prev => [...prev, { id: Date.now(), text: "Sistem hatası.", sender: 'ai' }]);
     } finally {
       setLoading(false);
     }
@@ -103,8 +104,8 @@ export default function App() {
     setLoading(true);
 
     try {
-      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
-      const response = await fetch(url, {
+      const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -112,10 +113,10 @@ export default function App() {
         })
       });
       const data = await response.json();
-      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hata oluştu.";
+      const aiText = data.candidates && data.candidates[0] ? data.candidates[0].content.parts[0].text : "Hata efendim.";
       setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
     } catch (e) {
-      setMessages(prev => [...prev, { id: Date.now(), text: "Bağlantı koptu.", sender: 'ai' }]);
+      setMessages(prev => [...prev, { id: Date.now(), text: "Bağlantı hatası.", sender: 'ai' }]);
     } finally {
       setLoading(false);
     }
@@ -129,7 +130,7 @@ export default function App() {
             <Text style={styles.bubbleText}>J</Text>
           </TouchableOpacity>
           <View style={styles.miniChat}>
-            <ScrollView style={styles.miniScroll}><Text style={styles.miniAiText}>{messages[messages.length - 1]?.text}</Text></ScrollView>
+            <ScrollView style={{maxHeight: 80}}><Text style={styles.miniAiText}>{messages[messages.length - 1]?.text}</Text></ScrollView>
             <View style={styles.miniInputRow}>
               <TouchableOpacity onPress={autoAnalyze} style={styles.eyeBtn}><Text style={{fontSize: 20}}>👁️</Text></TouchableOpacity>
               <TextInput style={styles.miniInput} placeholder="..." value={inputText} onChangeText={setInputText}/>
@@ -192,8 +193,7 @@ const styles = StyleSheet.create({
   miniInputRow: { flexDirection: 'row', marginTop: 10, alignItems: 'center' },
   eyeBtn: { backgroundColor: '#00d2ff', padding: 5, borderRadius: 50, marginRight: 5 },
   miniInput: { flex: 1, color: '#fff', fontSize: 12 },
-  miniSend: { backgroundColor: '#00d2ff', width: 25, height: 25, borderRadius: 12.5, justifyContent: 'center', alignItems: 'center', marginLeft: 5 },
-  miniScroll: { maxHeight: 80 }
+  miniSend: { backgroundColor: '#00d2ff', width: 25, height: 25, borderRadius: 12.5, justifyContent: 'center', alignItems: 'center', marginLeft: 5 }
 });
 
 ```
