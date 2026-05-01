@@ -19,11 +19,11 @@ import * as FileSystem from 'expo-file-system';
 
 const { width, height } = Dimensions.get('window');
 
-// JARVIS ANA YAZILIMI
+// JARVIS SİSTEMİ - HATASIZ VERSİYON
 export default function App() {
   const [isFloatMode, setIsFloatMode] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Sistemler aktif efendim. Ekran görüntüsü alın ve balon üzerindeki göz (👁️) butonuna dokunun.", sender: 'ai' }
+    { id: 1, text: "Sistemler aktif efendim. Ekran görüntüsü alın ve göz (👁️) butonuna dokunun.", sender: 'ai' }
   ]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -73,7 +73,7 @@ export default function App() {
           body: JSON.stringify({
             contents: [{
               parts: [
-                { text: "Sen Jarvis'sin. Bu son alınan ekran görüntüsü. Brawl Stars gibi bir oyunsa taktik ver. Mesajsa ne yazmam gerektiğini söyle. Zeki ve delikanlı ol." },
+                { text: "Sen Jarvis'sin. Bu son ekran görüntüsü. Brawl Stars gibi bir oyunsa taktik ver. Mesajsa ne yazmam gerektiğini söyle. Üslubun samimi, zeki ve delikanlı olsun." },
                 { inlineData: { mimeType: "image/png", data: base64Data } }
               ]
             }]
@@ -81,11 +81,11 @@ export default function App() {
         });
 
         const data = await response.json();
-        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz başarısız efendim.";
+        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz başarısız.";
         setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
       }
     } catch (error) {
-      setMessages(prev => [...prev, { id: Date.now(), text: "Hata: " + error.message, sender: 'ai' }]);
+      setMessages(prev => [...prev, { id: Date.now(), text: "Göz sisteminde hata oluştu.", sender: 'ai' }]);
     } finally {
       setLoading(false);
     }
@@ -96,20 +96,20 @@ export default function App() {
     const userMsg = { id: Date.now(), text: inputText, sender: 'user' };
     setMessages(prev => [...prev, userMsg]);
     const currentInput = inputText;
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
     setInputText('');
     setLoading(true);
 
     try {
+      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: "Sen Jarvis'sin. 11. sınıf bir gencin asistanısın. Soru: " + currentInput }] }]
+          contents: [{ parts: [{ text: "Sen Jarvis'sin. 11. sınıf Beyşehirli bir gencin asistanısın. Soru: " + currentInput }] }]
         })
       });
       const data = await response.json();
-      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hata efendim.";
+      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hata oluştu.";
       setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
     } catch (e) {
       setMessages(prev => [...prev, { id: Date.now(), text: "Bağlantı koptu.", sender: 'ai' }]);
