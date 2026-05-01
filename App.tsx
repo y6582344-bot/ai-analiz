@@ -22,7 +22,7 @@ const { width, height } = Dimensions.get('window');
 export default function App() {
   const [isFloatMode, setIsFloatMode] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Sistemler aktif efendim. Ekran görüntüsü alın ve göz (👁️) butonuna dokunun.", sender: 'ai' }
+    { id: 1, text: "Sistemler aktif efendim. Göz simgesine dokunun, son ekran görüntüsünü analiz edeyim.", sender: 'ai' }
   ]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,21 +30,20 @@ export default function App() {
   const pan = useRef(new Animated.ValueXY({ x: width - 80, y: height - 250 })).current;
 
   useEffect(() => {
-    async function requestPermissions() {
-      try {
-        await MediaLibrary.requestPermissionsAsync();
-      } catch (err) {
-        console.log("İzin hatası");
-      }
+    async function getPerms() {
+      await MediaLibrary.requestPermissionsAsync();
     }
-    requestPermissions();
+    getPerms();
   }, []);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
-        pan.setOffset({ x: (pan.x as any)._value, y: (pan.y as any)._value });
+        pan.setOffset({
+          x: (pan.x as any)._value,
+          y: (pan.y as any)._value
+        });
         pan.setValue({ x: 0, y: 0 });
       },
       onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
@@ -52,23 +51,22 @@ export default function App() {
     })
   ).current;
 
-  // SENİN API ANAHTARIN
   const API_KEY = "AIzaSyBXCxSX0vx7nKTQVxerJ2s0778X-S_ShQ"; 
 
   const autoAnalyze = async () => {
     if (loading) return;
     setLoading(true);
     try {
-      const { assets } = await MediaLibrary.getAssetsAsync({
+      const result = await MediaLibrary.getAssetsAsync({
         first: 1,
         sortBy: [[MediaLibrary.SortBy.creationTime, false]],
       });
 
-      if (assets && assets.length > 0) {
-        const lastPhoto = assets[0];
+      if (result.assets && result.assets.length > 0) {
+        const lastPhoto = result.assets[0];
         const base64Data = await FileSystem.readAsStringAsync(lastPhoto.uri, { encoding: FileSystem.EncodingType.Base64 });
         
-        setMessages(prev => [...prev, { id: Date.now(), text: "Analiz ediliyor...", sender: 'user' }]);
+        setMessages(prev => [...prev, { id: Date.now(), text: "Görüntü analiz ediliyor...", sender: 'user' }]);
 
         const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
 
@@ -78,7 +76,7 @@ export default function App() {
           body: JSON.stringify({
             contents: [{
               parts: [
-                { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Oyunsa taktik ver, mesajsa cevap yaz. Zeki ve delikanlı ol." },
+                { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Oyunsa taktik ver, mesajsa ne yazacağımı söyle. Zeki ve delikanlı ol." },
                 { inlineData: { mimeType: "image/png", data: base64Data } }
               ]
             }]
@@ -86,11 +84,11 @@ export default function App() {
         });
 
         const data = await response.json();
-        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz başarısız.";
+        const aiText = data.candidates && data.candidates[0] ? data.candidates[0].content.parts[0].text : "Analiz başarısız.";
         setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
       }
     } catch (error) {
-      setMessages(prev => [...prev, { id: Date.now(), text: "Sistem hatası.", sender: 'ai' }]);
+      setMessages(prev => [...prev, { id: Date.now(), text: "Hata oluştu.", sender: 'ai' }]);
     } finally {
       setLoading(false);
     }
@@ -98,14 +96,13 @@ export default function App() {
 
   const sendMessage = async () => {
     if (!inputText.trim() || loading) return;
-    const userMsg = { id: Date.now(), text: inputText, sender: 'user' };
-    setMessages(prev => [...prev, userMsg]);
     const currentInput = inputText;
-    const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
+    setMessages(prev => [...prev, { id: Date.now(), text: currentInput, sender: 'user' }]);
     setInputText('');
     setLoading(true);
 
     try {
+      const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -114,7 +111,7 @@ export default function App() {
         })
       });
       const data = await response.json();
-      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hata oluştu.";
+      const aiText = data.candidates && data.candidates[0] ? data.candidates[0].content.parts[0].text : "Hata efendim.";
       setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
     } catch (e) {
       setMessages(prev => [...prev, { id: Date.now(), text: "Bağlantı koptu.", sender: 'ai' }]);
@@ -162,8 +159,8 @@ export default function App() {
       </ScrollView>
       <View style={styles.footer}>
         <TouchableOpacity onPress={autoAnalyze} style={styles.cameraBtn}><Text style={{fontSize: 28}}>👁️</Text></TouchableOpacity>
-        <TextInput style={styles.mainInput} placeholder="Emredin efendim..." value={inputText} onChangeText={setInputText} multiline/>
-        <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}><Text style={styles.sendBtnText}>GÖNDER</Text></TouchableOpacity>
+        <TextInput style={styles.mainInput} placeholder="Emredin..." value={inputText} onChangeText={setInputText} multiline/>
+        <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}><Text style={styles.sendBtnText}>SOR</Text></TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -187,7 +184,7 @@ const styles = StyleSheet.create({
   sendBtn: { backgroundColor: '#00d2ff', paddingHorizontal: 20, borderRadius: 25, height: 50, justifyContent: 'center' },
   sendBtnText: { color: '#0b0f19', fontWeight: 'bold' },
   floatingJarvis: { position: 'absolute', alignItems: 'center', width: 220 },
-  bubble: { width: 65, height: 65, borderRadius: 32.5, backgroundColor: '#00d2ff', justifyContent: 'center', alignItems: 'center', elevation: 15 },
+  bubble: { width: 65, height: 65, borderRadius: 32.5, backgroundColor: '#00d2ff', justifyContent: 'center', alignItems: 'center' },
   bubbleText: { fontSize: 35, fontWeight: 'bold', color: '#0b0f19' },
   miniChat: { backgroundColor: '#161b22', borderRadius: 15, marginTop: 10, padding: 10, width: 220, borderWidth: 1, borderColor: '#00d2ff' },
   miniAiText: { color: '#00d2ff', fontSize: 12 },
