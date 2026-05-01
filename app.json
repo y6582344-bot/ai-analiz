@@ -4,7 +4,6 @@
     "slug": "ai",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
       "backgroundColor": "#0b0f19"
@@ -23,7 +22,7 @@
     },
     "plugins": [
       [
-        "expo-image-picker",
+        "expo-media-library",
         {
           "photosPermission": "Jarvis'in ekran görüntülerinizi analiz etmesi için galerinize erişmesi gerekiyor."
         }
