@@ -20,11 +20,10 @@ import * as FileSystem from 'expo-file-system';
 
 const { width, height } = Dimensions.get('window');
 
-// JARVIS PROTOKOLÜ V3 - HATASIZ SÜRÜM
 export default function App() {
   const [isFloatMode, setIsFloatMode] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, text: "Sistemler aktif efendim. Ekran görüntüsü alın ve göz (👁️) butonuna dokunun. Analize hazırım.", sender: 'ai' }
+    { id: 1, text: "Sistemler aktif efendim. Göz simgesine basınca son ekran görüntüsünü analiz ederim.", sender: 'ai' }
   ]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,10 +48,9 @@ export default function App() {
     })
   ).current;
 
-  // SENİN RESİMDEN ALDIĞIM API ANAHTARI
+  // SENİN API ANAHTARIN
   const API_KEY = "AIzaSyBXCxSX0vx7nKTQVxerJ2s0778X-S_ShQ"; 
 
-  // OTOMATİK ANALİZ: EN SON EKRAN GÖRÜNTÜSÜNÜ OKUR
   const autoAnalyze = async () => {
     setLoading(true);
     try {
@@ -64,31 +62,31 @@ export default function App() {
       if (assets.length > 0) {
         const lastPhoto = assets[0];
         const base64Data = await FileSystem.readAsStringAsync(lastPhoto.uri, { encoding: FileSystem.EncodingType.Base64 });
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
         
-        setMessages(prev => [...prev, { id: Date.now(), text: "Efendim, ekranı analiz ediyorum...", sender: 'user' }]);
+        setMessages(prev => [...prev, { id: Date.now(), text: "Görüntü analiz ediliyor...", sender: 'user' }]);
 
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: "Sen Jarvis'sin. Bu son alınan ekran görüntüsü. Eğer Brawl Stars veya bir oyunsa stratejik taktik ver. Eğer bir mesajlaşmaysa kıza ne cevap vereceğimi söyle. Üslubun nazik, zeki ve delikanlı olsun." },
-                { inlineData: { mimeType: "image/png", data: base64Data } }
-              ]
-            }]
-          })
-        });
+        const response = await fetch(
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: "Sen Jarvis'sin. Bu bir ekran görüntüsü. Oyunsa taktik ver, mesajsa cevap yaz. Samimi ol." },
+                  { inlineData: { mimeType: "image/png", data: base64Data } }
+                ]
+              }]
+            })
+          }
+        );
 
         const data = await response.json();
-        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz başarısız efendim.";
+        const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Analiz başarısız.";
         setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
-      } else {
-        setMessages(prev => [...prev, { id: Date.now(), text: "Görüntü bulunamadı.", sender: 'ai' }]);
       }
     } catch (error) {
-      setMessages(prev => [...prev, { id: Date.now(), text: "Göz sisteminde hata oluştu.", sender: 'ai' }]);
+      setMessages(prev => [...prev, { id: Date.now(), text: "Sistem hatası.", sender: 'ai' }]);
     } finally {
       setLoading(false);
     }
@@ -99,20 +97,22 @@ export default function App() {
     const userMsg = { id: Date.now(), text: inputText, sender: 'user' };
     setMessages(prev => [...prev, userMsg]);
     const currentInput = inputText;
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
     setInputText('');
     setLoading(true);
 
     try {
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: `Sen Jarvis'sin. 11. sınıf bir Türk gencin yardımcısısın. Zeki ve samimi ol. Soru: ${currentInput}` }] }]
-        })
-      });
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: "Sen Jarvis'sin. Zeki ol. Soru: " + currentInput }] }]
+          })
+        }
+      );
       const data = await response.json();
-      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hata efendim.";
+      const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Hata oluştu.";
       setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai' }]);
     } catch (e) {
       setMessages(prev => [...prev, { id: Date.now(), text: "Bağlantı koptu.", sender: 'ai' }]);
@@ -131,9 +131,9 @@ export default function App() {
           <View style={styles.miniChat}>
             <ScrollView style={styles.miniScroll}><Text style={styles.miniAiText}>{messages[messages.length - 1].text}</Text></ScrollView>
             <View style={styles.miniInputRow}>
-              <TouchableOpacity onPress={autoAnalyze} style={styles.eyeBtn}><Text style={{fontSize: 20}}>👁️</Text></TouchableOpacity>
-              <TextInput style={styles.miniInput} placeholder="..." placeholderTextColor="#444" value={inputText} onChangeText={setInputText}/>
-              <TouchableOpacity onPress={sendMessage} style={styles.miniSend}><Text style={{color: '#000'}}>></Text></TouchableOpacity>
+              <TouchableOpacity onPress={autoAnalyze} style={styles.eyeBtn}><Text>👁️</Text></TouchableOpacity>
+              <TextInput style={styles.miniInput} placeholder="..." value={inputText} onChangeText={setInputText}/>
+              <TouchableOpacity onPress={sendMessage} style={styles.miniSend}><Text>></Text></TouchableOpacity>
             </View>
           </View>
         </Animated.View>
@@ -143,7 +143,6 @@ export default function App() {
 
   return (
     <KeyboardAvoidingView behavior="height" style={styles.container}>
-      <StatusBar barStyle="light-content" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>JARVIS</Text>
         <TouchableOpacity style={styles.floatBtn} onPress={() => setIsFloatMode(true)}>
@@ -160,7 +159,7 @@ export default function App() {
       </ScrollView>
       <View style={styles.footer}>
         <TouchableOpacity onPress={autoAnalyze} style={styles.cameraBtn}><Text style={{fontSize: 28}}>👁️</Text></TouchableOpacity>
-        <TextInput style={styles.mainInput} placeholder="Emredin efendim..." placeholderTextColor="#666" value={inputText} onChangeText={setInputText} multiline/>
+        <TextInput style={styles.mainInput} placeholder="Emredin..." value={inputText} onChangeText={setInputText} multiline/>
         <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}><Text style={styles.sendBtnText}>GÖNDER</Text></TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -170,7 +169,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0b0f19' },
   header: { paddingTop: 60, paddingBottom: 20, backgroundColor: '#161b22', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, alignItems: 'center' },
-  headerTitle: { color: '#00d2ff', fontSize: 24, fontWeight: 'bold', letterSpacing: 4 },
+  headerTitle: { color: '#00d2ff', fontSize: 24, fontWeight: 'bold' },
   floatBtn: { backgroundColor: '#00d2ff', paddingVertical: 5, paddingHorizontal: 15, borderRadius: 20 },
   floatBtnText: { color: '#0b0f19', fontWeight: 'bold' },
   chatArea: { padding: 15 },
