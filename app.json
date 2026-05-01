@@ -25,7 +25,7 @@
       [
         "expo-media-library",
         {
-          "photosPermission": "Jarvis'in ekran görüntülerinizi analiz etmesi için galerinize erişmesi gerekiyor."
+          "photosPermission": "Jarvis'in ekran görüntülerinizi analiz etmesi için izne ihtiyacı var."
         }
       ]
     ]
